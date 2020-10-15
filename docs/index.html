@@ -1,12 +1,222 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>My First Page</title>
-    </head>
-    <body>
-        <h1>
-            My First Page Published Successfully!
-        </h1>
-    </body>
+<meta charset="utf-8">
+
+<head>
+    <title>Tennis Game</title>
+</head>
+
+<body>
+
+    <canvas width="800" height="600" id="gameCanvas">
+
+    </canvas>
+
+    <script type="text/javascript">
+        var _canvas = (function () {
+            var canvas;
+            var canvasContext;
+            var framePerSecond = 24;
+
+            var settings = {
+
+                init: function () {
+                    canvas = document.getElementById("gameCanvas");
+                    canvasContext = canvas.getContext("2d");
+                    this.init_everything();
+                    canvas.addEventListener("mousemove", function (event) {
+                        left_tennis.coordinationY = actions.calcMousePos(event).y - (left_tennis.height / 2);
+                        // right_tennis.coordinationY= actions.calcMousePos(event).y - (right_tennis.height / 2);
+                        settings.init_everything();
+
+                    });
+                    this.render();
+                },
+                render: function () {
+                    setInterval(function () { actions.circle_movementX(); right_tennis.computer_movement(); }, 1000 / framePerSecond);
+                },
+                init_everything: function () {
+                    actions.setColor("black");
+                    actions.drawRect(0, 0, canvas.width, canvas.height);
+                    left_tennis.draw();
+                    right_tennis.draw();
+                    ball.draw();
+                    canvasContext.fillText("Lives : " + left_tennis.total, 100, 20,);
+                    canvasContext.fillText("Lives : " + right_tennis.total, canvas.width - 100, 20);
+                }
+            };
+
+            var actions = {
+                drawRect: function (cx, cy, width, height) {
+                    canvasContext.fillRect(cx, cy, width, height);
+                },
+                setColor: function (color) {
+                    canvasContext.fillStyle = color;
+                },
+                drawCircle: function (cx, cy, radius) {
+                    actions.setColor("white");
+                    canvasContext.beginPath();
+                    canvasContext.arc(cx, cy, radius, 0, 2 * Math.PI);
+                    canvasContext.fill();
+                },
+                circle_movementX: function () {
+
+                    ball.coordinationX += ball.speedX;
+                    ball.coordinationY += ball.speedY;
+
+                    ball.set(ball.coordinationX, ball.coordinationY, ball.radius);
+                    ///right tennis
+                    if (ball.coordinationX >= canvas.width) {
+                        if (ball.coordinationY > right_tennis.coordinationY && ball.coordinationY < right_tennis.coordinationY + right_tennis.height) {
+                            ball.speedX = -ball.speedX;
+                            var deltaY = ball.coordinationY - (left_tennis.coordinationY + left_tennis.height / 2);
+                            ball.speedY = deltaY * 0.35;
+                        }
+                        else {
+                            right_tennis.total -= 1;
+                            actions.check_winner();
+                            ball.reset();
+                            // ball.speedX = -ball.speedX;
+                        }
+                    }
+                    ///left tennis
+                    if (ball.coordinationX <= 0) {
+                        if (ball.coordinationY > left_tennis.coordinationY && ball.coordinationY < left_tennis.coordinationY + left_tennis.height) {
+                            ball.speedX = -ball.speedX;
+                            var deltaY = ball.coordinationY - (left_tennis.coordinationY + left_tennis.height / 2);
+                            ball.speedY = deltaY * 0.35;
+                        }
+                        else {
+                            left_tennis.total -= 1;
+                            actions.check_winner();
+                            ball.reset();
+                            // ball.speedX = -ball.speedX;
+                        }
+
+                    }
+                    if (ball.coordinationY >= canvas.height || ball.coordinationY <= 0) {
+                        ball.speedY = -ball.speedY;
+
+                    }
+                    settings.init_everything();
+                },
+                calcMousePos: function (evt) {
+                    //console.log(evt);
+                    var rect = canvas.getBoundingClientRect();
+                    var root = document.documentElement;
+                    var mouse_X = evt.clientX - rect.left - root.scrollLeft;
+                    var mouse_Y = evt.clientY - rect.top - root.scrollTop;
+                    return {
+                        x: mouse_X,
+                        y: mouse_Y
+                    }
+                },
+
+                check_winner: function () {
+
+                    if (left_tennis.total == 0) {
+                        window.alert("Hard Luck to the next time !");
+                        ball.reset();
+                        this.reset_total();
+                    } else if (right_tennis.total == 0) {
+                        window.alert("You won the Game!");
+                        ball.reset();
+                        this.reset_total();
+                    }
+                },
+                reset_total: function () {
+                    left_tennis.total = 5;
+                    right_tennis.total = 5;
+                }
+            };
+
+            var left_tennis = {
+                total: 5,
+                coordinationX: null,
+                coordinationY: null,
+                width: 20,
+                height: 150,
+                color: "blue",
+                draw: function () {
+                    actions.setColor(this.color);
+                    actions.drawRect(this.coordinationX, this.coordinationY, this.width, this.height);
+                },
+                set: function (x, y, w, h) {
+                    this.coordinationX = x;
+                    this.coordinationY = y;
+                    this.width = w;
+                    this.height = h;
+                },
+                init: function () {
+
+                },
+
+            };
+
+            var right_tennis = {
+                total: 5,
+                coordinationX: 0,
+                coordinationY: 0,
+                width: 20,
+                height: 150,
+                color: "blue",
+                draw: function () {
+                    this.coordinationX = canvas.width - this.width;
+                    actions.setColor(this.color);
+                    actions.drawRect(this.coordinationX, this.coordinationY, this.width, this.height);
+                },
+                set: function (x, y, w, h) {
+                    this.coordinationX = x;
+                    this.coordinationY = y;
+                    this.width = w;
+                    this.height = h;
+                },
+                init: function () {
+                    this.coordinationX = canvas.width - this.width;
+                    this.coordinationY = (canvas.height - this.height) / 2;
+                },
+                computer_movement: function () {
+                    if (ball.coordinationX > (canvas.width / 2) - 200) {
+                        if (this.coordinationY + (this.height / 2) < ball.coordinationY) {
+                            this.coordinationY += 20;
+                        }
+                        else if (this.coordinationY + (this.height / 2) > ball.coordinationY) {
+                            this.coordinationY -= 20;
+                        }
+                    }
+                }
+            };
+
+            var ball = {
+                coordinationX: 20,
+                coordinationY: 20,
+                radius: 10,
+                speedX: 10,
+                speedY: 12,
+                draw: function () {
+                    actions.setColor("white");
+                    actions.drawCircle(this.coordinationX, this.coordinationY, this.radius);
+                },
+                set: function (x, y, r) {
+                    this.coordinationY = y;
+                    this.coordinationX = x;
+                    this.radius = r;
+                },
+                reset: function () {
+                    this.set(canvas.width / 2, canvas.height / 2, this.radius);
+                }
+            };
+            return {
+                settings: settings
+            };
+        }());
+
+
+        window.onload = function () {
+            _canvas.settings.init();
+        };
+    </script>
+
+</body>
+
 </html>
