@@ -83,8 +83,8 @@
                     if (ball.coordinationX <= 0) {
                         if (ball.coordinationY > left_tennis.coordinationY && ball.coordinationY < left_tennis.coordinationY + left_tennis.height) {
                             ball.speedX = -ball.speedX;
-                            var deltaY = ball.coordinationY - (left_tennis.coordinationY + left_tennis.height / 2);
-                            ball.speedY = deltaY * 0.35;
+                            // var deltaY = ball.coordinationY - (left_tennis.coordinationY + left_tennis.height / 2);
+                            // ball.speedY = deltaY * 0.35;
                         }
                         else {
                             left_tennis.total -= 1;
