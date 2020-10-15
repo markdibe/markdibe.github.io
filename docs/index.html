@@ -69,8 +69,8 @@
                     if (ball.coordinationX >= canvas.width) {
                         if (ball.coordinationY > right_tennis.coordinationY && ball.coordinationY < right_tennis.coordinationY + right_tennis.height) {
                             ball.speedX = -ball.speedX;
-                            var deltaY = ball.coordinationY - (left_tennis.coordinationY + left_tennis.height / 2);
-                            ball.speedY = deltaY * 0.35;
+                            // var deltaY = ball.coordinationY - (left_tennis.coordinationY + left_tennis.height / 2);
+                            // ball.speedY = deltaY * 0.35;
                         }
                         else {
                             right_tennis.total -= 1;
