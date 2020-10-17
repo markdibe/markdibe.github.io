@@ -12,6 +12,10 @@
 
     </canvas>
 
+<canvas id="test" width="400" height="400">
+
+</canvas>
+
     <script type="text/javascript">
         var _canvas = (function () {
             var canvas;
@@ -41,6 +45,7 @@
                     left_tennis.draw();
                     right_tennis.draw();
                     ball.draw();
+                    actions.draw_dash();
                     canvasContext.fillText("Lives : " + left_tennis.total, 100, 20,);
                     canvasContext.fillText("Lives : " + right_tennis.total, canvas.width - 100, 20);
                 }
@@ -59,8 +64,23 @@
                     canvasContext.arc(cx, cy, radius, 0, 2 * Math.PI);
                     canvasContext.fill();
                 },
-                circle_movementX: function () {
+                draw_dash: function () {
+                    actions.setColor("white");
+                    // canvasContext.beginPath();
+                    // canvasContext.setLineDash([5, 15]);
+                    // canvasContext.moveTo(canvas.width / 2, 0);
+                    // canvasContext.lineTo(canvas.width / 2, canvas.height);
+                    // canvasContext.stroke();
 
+                    canvasContext.beginPath();
+                    canvasContext.setLineDash([5, 15]);
+                    canvasContext.moveTo(0, 50);
+                    canvasContext.lineTo(300, 50);
+                    canvasContext.stroke();
+                },
+                circle_movementX: function () {
+                    // ball.speedX  = Math.floor(Math.random() * 25);
+                    // ball.speedY =Math.floor(Math.random() * 25);
                     ball.coordinationX += ball.speedX;
                     ball.coordinationY += ball.speedY;
 
@@ -178,10 +198,10 @@
                 computer_movement: function () {
                     if (ball.coordinationX > (canvas.width / 2) - 200) {
                         if (this.coordinationY + (this.height / 2) < ball.coordinationY) {
-                            this.coordinationY += 20;
+                            this.coordinationY += 18;
                         }
                         else if (this.coordinationY + (this.height / 2) > ball.coordinationY) {
-                            this.coordinationY -= 20;
+                            this.coordinationY -= 18;
                         }
                     }
                 }
@@ -191,8 +211,8 @@
                 coordinationX: 20,
                 coordinationY: 20,
                 radius: 10,
-                speedX: 10,
-                speedY: 12,
+                speedX: 25,
+                speedY: 22,
                 draw: function () {
                     actions.setColor("white");
                     actions.drawCircle(this.coordinationX, this.coordinationY, this.radius);
@@ -214,6 +234,16 @@
 
         window.onload = function () {
             _canvas.settings.init();
+            let c = document.getElementById("test");
+            let ctx  = c.getContext("2d");
+            // cts.fillStyle = "red";
+            ctx.beginPath();
+            ctx.setLineDash([5, 15]);
+            ctx.moveTo(0, 50);
+            ctx.lineTo(300, 50);
+            ctx.stroke();
+
+
         };
     </script>
 
