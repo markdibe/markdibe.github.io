@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blocks crasher game!</title>
+
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        canvas {
+            background: #eee;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <canvas id="myCanvas" width="480" height="320"></canvas>
+
+    <script>
+        var gc = (function () {
+            var canv = {
+                canvas: "",
+                ctx: "",
+                intervals: [],
+                init: function () {
+                    this.canvas = document.getElementById("myCanvas");
+                    this.ctx = this.canvas.getContext("2d");
+
+                    this.render();
+                },
+                render: function () {
+                    this.events();
+                    bricks.init_draw();
+                    let i = setInterval(this.draw, 1000 / 50);
+                    this.intervals.push(i);
+                },
+                clear_canv: function () {
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                },
+                draw: function () {
+                    canv.clear_canv();
+                    ball.init();
+                    paddle.init();
+                    bricks.init();
+                    score.draw();
+                },
+                events: function () {
+                    document.addEventListener("keydown", function (e) {
+                        paddle.key_down_handler(e);
+                    }, false);
+                    document.addEventListener("keyup", function (e) {
+                        paddle.key_up_handler(e);
+                    }, false);
+                }
+            };
+
+
+            var ball = {
+                x: 0,
+                y: 0,
+                dx: 2,
+                dy: -2,
+                radius: 10,
+                draw_fill: function (x, y, color) {
+                    let ctx = canv.ctx;
+                    ctx.beginPath();
+                    ctx.arc(x, y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                    ctx.closePath();
+                },
+                move: function () {
+                    this.x += this.dx;
+                    this.y += this.dy;
+                },
+                init: function () {
+                    if (!this.x || !this.y) {
+                        this.x = canv.canvas.width / 2;
+                        this.y = canv.canvas.height - 30;
+                    }
+                    this.render();
+                },
+                render: function () {
+                    this.validate_bounds();
+                    this.draw_fill(this.x, this.y, 10, "green");
+                    this.move();
+                },
+                validate_bounds: function () {
+                    if (this.x >= canv.canvas.width - this.radius || this.x <= this.radius) {
+                        this.dx = -this.dx;
+                    }
+                    if (this.y <= this.radius) {
+                        this.dy = -this.dy;
+                    } else if (this.y >= canv.canvas.height - this.radius) {
+                        if (this.x > paddle.paddleX && this.x < paddle.paddleX + paddle.width) {
+                            this.dy = -this.dy;
+                        } else {
+                            canv.intervals.forEach((e) => {
+                                clearInterval(e);
+                            });
+                            window.alert("GAME OVER");
+                        }
+                    }
+                }
+            };
+
+            var paddle = {
+                height: 10,
+                width: 75,
+                paddleX: null,
+                right_pressed: false,
+                left_pressed: false,
+                init: function () {
+                    if (typeof this.paddleX == "undefined") {
+                        this.paddleX = (canv.canvas.width - this.width) / 2;
+                    }
+                    this.render();
+                },
+                draw: function (x, y, h, w) {
+                    let ctx = canv.ctx;
+                    ctx.beginPath();
+                    ctx.rect(x, y, h, w);
+                    ctx.fillStyle = "#0095DD";
+                    ctx.fill();
+                    ctx.closePath();
+                },
+                render: function () {
+                    this.move();
+                    this.draw(this.paddleX, canv.canvas.height - this.height, this.width, this.height);
+                },
+                key_down_handler: function (e) {
+                    if (e.key == "Right" || e.key == "ArrowRight") {
+                        this.right_pressed = true;
+                    } else if (e.key == "Left" || e.key == "ArrowLeft") {
+                        this.left_pressed = true;
+                    }
+                },
+                key_up_handler: function (e) {
+                    if (e.key == "Left" || e.key == "ArrowLeft") {
+                        this.left_pressed = false;
+                    } else if (e.key == "Right" || e.key == "ArrowRight") {
+                        this.right_pressed = false;
+                    }
+                },
+                move: function () {
+                    if (this.right_pressed) {
+                        this.paddleX += 7;
+                        if (this.paddleX + this.width > canv.canvas.width) {
+                            this.paddleX = canv.canvas.width - this.width;
+                        }
+                    } else if (this.left_pressed) {
+                        this.paddleX -= 7;
+                        if (this.paddleX < 0) {
+                            this.paddleX = 0;
+                        }
+                    }
+                }
+            };
+
+
+            var bricks = {
+                row_count: 3,
+                col_count: 5,
+                list: [],
+                init: function () {
+                    this.render();
+                },
+                render: function () {
+                    this.draw();
+                    brick.collision_detection();
+                },
+                init_draw: function () {
+                    for (var c = 0; c < this.col_count; c++) {
+                        this.list[c] = [];
+                        for (var r = 0; r < this.row_count; r++) {
+                            this.list[c][r] = {
+                                x: 0,
+                                y: 0,
+                                status: 1
+                            };
+                        }
+                    }
+                },
+                draw: function () {
+                    for (var c = 0; c < this.col_count; c++) {
+                        for (var r = 0; r < this.row_count; r++) {
+                            brick.draw(c, r);
+                        }
+                    }
+                },
+
+
+            };
+
+            var brick = {
+                width: 75,
+                height: 20,
+                padding: 10,
+                offset_top: 30,
+                offset_left: 30,
+                draw: function (c, r) {
+                    if (bricks.list[c][r].status == 1) {
+                        let ctx = canv.ctx;
+                        let bX = (c * (this.width + this.padding)) + this.offset_left;
+                        let bY = (r * (this.height + this.padding)) + this.offset_top;
+                        bricks.list[c][r].x = bX;
+                        bricks.list[c][r].y = bY;
+                        ctx.beginPath();
+                        ctx.rect(bX, bY, this.width, this.height);
+                        ctx.fillStyle = "#0095DD";
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                },
+                collision_detection: function () {
+                    bricks.list.forEach((columns) => {
+                        columns.forEach((cell) => {
+                            if (cell.status == 1) {
+                                if (ball.x > cell.x && ball.x < cell.x + this.width &&
+                                    ball.y > cell.y && ball.y < cell.y + this.height
+                                ) {
+                                    ball.dy = -ball.dy;
+                                    canv.ctx.clearRect(cell.x, cell.y, this.width, this
+                                        .height);
+                                    cell.status = 0;
+                                    score.total+=1;
+                                }
+                            }
+
+                        });
+                    });
+                }
+            };
+
+            var score = {
+                total: 0,
+                draw: function () {
+                    let ctx = canv.ctx;
+                    ctx.font = "16px Arial";
+                    ctx.fillStyle = "#0095DD";
+                    if (this.total == bricks.col_count * bricks.row_count) {
+                        ctx.fillText("Congradulation ! You Won - Score :" + this.total , 8 , 20);
+
+                    } else {
+                        ctx.fillText("Score : " + this.total, 8, 20);
+                    }
+                }
+            };
+
+            return {
+                canv: canv,
+                ball: ball,
+                bricks: bricks,
+                score:score
+            };
+
+        }());
+
+        window.onload = function () {
+            gc.canv.init();
+        };
+    </script>
+
+</body>
+
+</html>
